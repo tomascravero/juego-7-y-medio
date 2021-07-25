@@ -51,10 +51,9 @@ int main() {
             printf("PUNTOS: %f\n", jugadores[j]->puntos);
             printf("*********************************\n");
         }
-
-        // determinar quien gano mas
-        quienGanoMas(jugadores, cantidadJugadores);
     }
+    // determinar quien gano mas
+    quienGanoMas(jugadores, cantidadJugadores);
 
     return 0;
 }

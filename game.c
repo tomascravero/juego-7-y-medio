@@ -120,6 +120,7 @@ void iniciarJuego(Jugador jugadores[6], int cantidadJugadores) {
 void iniciarRonda(Carta mazoJuego[40], Jugador jugadores[6], int cantidadJugadores) {
     apuestaJugador(mazoJuego, jugadores, cantidadJugadores);
     for(int i = 0; i < cantidadJugadores; i++) {
+        jugadores[i]->puntos = 0;
         int random;
         do {
             random = rand() % 40;
