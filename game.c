@@ -97,6 +97,7 @@ void iniciarJuego(Jugador jugadores[6], int cantidadJugadores) {
             jugadores[i]->planta = false;
             jugadores[i]->puntos = 0.00;
             jugadores[i]->esBanca = 0;
+            jugadores[i]->continuaJugando = true;
             printf("*********************************\n");
             printf("Jugador: %s\n", jugadores[i]->nombre);
             printf("Dinero: %f\n", jugadores[i]->dinero);
@@ -120,31 +121,41 @@ void iniciarJuego(Jugador jugadores[6], int cantidadJugadores) {
 void iniciarRonda(Carta mazoJuego[40], Jugador jugadores[6], int cantidadJugadores) {
     apuestaJugador(mazoJuego, jugadores, cantidadJugadores);
     for(int i = 0; i < cantidadJugadores; i++) {
+        // iteracion para inicializar en valores nulos las cartas
+        // de cada jugador por ronda iniciada
+        for (int j = 0; j < 6; j++) {
+            strcpy(jugadores[i]->cartasPorRonda[j]->palo, ' ');
+            jugadores[i]->cartasPorRonda[j]->numero = 0;
+        }
         jugadores[i]->puntos = 0;
+        int pos = 0;
         int random;
         do {
             random = rand() % 40;
         } while (mazoJuego[random]->inGame);
         jugadores[i]->puntos += mazoJuego[random]->puntos;
+        strcpy(jugadores[i]->cartasPorRonda[0]->palo, mazoJuego[random]->palo);
+        jugadores[i]->cartasPorRonda[pos]->numero = mazoJuego[random]->numero;
+        pos++;
         printf("Salio el %d de %c\n", mazoJuego[random]->numero, mazoJuego[random]->palo);
         mazoJuego[random]->inGame = true;
         if (i != (cantidadJugadores-1)) {
-            sePlanta(jugadores[i], mazoJuego);
+            sePlanta(jugadores[i], mazoJuego, pos);
             if (jugadores[i]->puntos == 0) {
-                jugadores[cantidadJugadores-1]->dinero += jugadores[i]->apuesta;
-                printf("Dinero de la banca: %f\n", jugadores[cantidadJugadores-1]->dinero);
+               // jugadores[cantidadJugadores-1]->dinero += jugadores[i]->apuesta;
+                printf("El dinero de %s se entregó a la banca.\n", jugadores[i]->nombre);
             }
         } else {
             printf("BANCA: \n");
             printf("DINERO: %f\n", jugadores[i]->dinero);
             printf("PUNTOS: %f\n", jugadores[i]->puntos);
-            pideCarta(jugadores[i], mazoJuego);
+            pideCarta(jugadores[i], mazoJuego, pos);
         }
     }
 }
 
 // pregunta al jugador si se planta o no
-void sePlanta(Jugador jugador, Carta mazoJuego[40]) {
+void sePlanta(Jugador jugador, Carta mazoJuego[40], int pos) {
     int b;
     printf("%s tiene: %f puntos.\n", jugador->nombre, jugador->puntos);
     do {
@@ -156,14 +167,14 @@ void sePlanta(Jugador jugador, Carta mazoJuego[40]) {
         printf("El jugador %s se planta.\n", jugador->nombre);
     } else {
         printf("El jugador %s no se planta.\n", jugador->nombre);
-        pideCarta(jugador, mazoJuego);
+        pideCarta(jugador, mazoJuego, pos);
     }
 }
 
 // apuesta de cada jugador menos de la banca
 void apuestaJugador(Carta mazoJuego[40], Jugador jugadores[6], int cantidadJugadores) {
     for (int i = 0; i < cantidadJugadores - 1; i++) {
-        //if (i != (cantidadJugadores - 1)) {
+        if (jugadores[i]->continuaJugando) {
             do {
                 printf("%s Ingrese apuesta (entre 100 y 1500): ", jugadores[i]->nombre);
                 scanf("%f", &jugadores[i]->apuesta);
@@ -171,29 +182,31 @@ void apuestaJugador(Carta mazoJuego[40], Jugador jugadores[6], int cantidadJugad
             jugadores[i]->dinero -= jugadores[i]->apuesta;
             printf("El jugador %s apuesta %f.\n", jugadores[i]->nombre, jugadores[i]->apuesta);
             printf("Dinero restante: %f\n", jugadores[i]->dinero);
-        //}
+        }
     }
 }
 
 // pide carta porque no se plantó
-void pideCarta(Jugador jugador, Carta mazoJuego[40]) {
+void pideCarta(Jugador jugador, Carta mazoJuego[40], int pos) {
     int random;
     do {
         random = rand() % 40;
     } while (mazoJuego[random]->inGame);
     jugador->puntos += mazoJuego[random]->puntos;
+    jugador->cartasPorRonda[pos]->numero = mazoJuego[random]->numero;
+    pos++;
     printf("Salio el %d de %c\n", mazoJuego[random]->numero, mazoJuego[random]->palo);
     printf("%s TIENE PUNTOS: %f\n", jugador->nombre, jugador->puntos);
     mazoJuego[random]->inGame = true;
     if (jugador->esBanca && jugador->puntos < 6) {
-        pideCarta(jugador, mazoJuego);
+        pideCarta(jugador, mazoJuego, pos);
     } else {
         if (jugador->esBanca && jugador->puntos <= 7.5) {
             jugador->planta = true;
         } else if (jugador->puntos <= 7.5) {
             // de nuevo preguntamos si se planta
             // unicamente en caso de que tenga 7.5 o menos
-            sePlanta(jugador, mazoJuego);
+            sePlanta(jugador, mazoJuego, pos);
         } else {
             jugador->puntos = 0;
             jugador->planta = true;
@@ -206,14 +219,49 @@ void pideCarta(Jugador jugador, Carta mazoJuego[40]) {
 // quita a la banca el dinero para cada uno
 void repartirGanancias(Jugador jugadores[6], int cantidadJugadores) {
     for (int i = 0; i < cantidadJugadores; i++) {
+        bool mismoPalo = false;
+        char palo = ' ';
+        int cantCartas = 0;
+        calcularBonus(mismoPalo, jugadores[i], palo);
         if (!jugadores[i]->esBanca) {
-            if (jugadores[i]->puntos == 7.5 || jugadores[i]->puntos > jugadores[cantidadJugadores-1]->puntos) {
+            if (jugadores[i]->puntos == 7.5 && jugadores[i]->puntos > jugadores[cantidadJugadores-1]->puntos) {
+                // Gana con: 7 + figura, el premio es 50% de lo apostado
                 jugadores[i]->dinero += jugadores[i]->apuesta * 1.5;
                 jugadores[cantidadJugadores-1]->dinero -= jugadores[i]->apuesta * 1.5 - jugadores[i]->apuesta;
                 printf("%s HA GANADO: %f\n", jugadores[i]->nombre, jugadores[i]->apuesta * 1.5);
+            } else if (jugadores[i]->puntos == 7.5 && jugadores[i]->puntos > jugadores[cantidadJugadores-1]->puntos && mismoPalo) {
+                // Gana con: 7 + figura, del mismo palo, premio 75% de lo apostado
+                jugadores[i]->dinero += jugadores[i]->apuesta * 1.75;
+                jugadores[cantidadJugadores-1]->dinero -= jugadores[i]->apuesta * 1.75 - jugadores[i]->apuesta;
+                printf("%s HA GANADO: %f\n", jugadores[i]->nombre, jugadores[i]->apuesta * 1.75);
+            } else if (jugadores[i]->puntos == 7.5 && jugadores[i]->puntos > jugadores[cantidadJugadores-1]->puntos && mismoPalo && strcmp(palo, 'o')) {
+                jugadores[i]->dinero += jugadores[i]->apuesta * 2;
+                jugadores[cantidadJugadores-1]->dinero -= jugadores[i]->apuesta * 2 - jugadores[i]->apuesta;
+                printf("%s HA GANADO: %f\n", jugadores[i]->nombre, jugadores[i]->apuesta * 2);
+            } else if (jugadores[i]->puntos > jugadores[cantidadJugadores-1]->puntos) {
+
+            } else {
+                jugadores[cantidadJugadores-1]->dinero += jugadores[i]->apuesta;
+                podriaSeguirJugando(jugadores[i]);
             }
         }
     }
+}
+
+void calcularBonus(bool mismoPalo, Jugador jugador, char palo) {
+    for (int i = 0; i < 6; i++) {
+        if (jugador->cartasPorRonda[i]->palo == jugador->cartasPorRonda[i]->palo) {
+            mismoPalo = true;
+            strcpy(palo, jugador->cartasPorRonda[i]->palo);
+        } else {
+            mismoPalo = false;
+            break;
+        }
+    }
+}
+
+void podriaSeguirJugando(Jugador jugador) {
+    jugador->continuaJugando = jugador->dinero > 0;
 }
 
 void quienGanoMas(Jugador jugadores[6], int cantidadJugadores) {
