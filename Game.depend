@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1627249023 source:c:\users\tomyc\desktop\game\main.c
+1628650870 source:c:\users\tomyc\desktop\game\main.c
 	<stdio.h>
 	<stdlib.h>
 	<math.h>
@@ -7,9 +7,9 @@
 	<ctype.h>
 	"./game.c"
 
-1627352393 c:\users\tomyc\desktop\game\game.c
+1628650587 c:\users\tomyc\desktop\game\game.c
 	"./game.h"
 
-1627352410 c:\users\tomyc\desktop\game\game.h
+1628650550 c:\users\tomyc\desktop\game\game.h
 	<stdbool.h>
 

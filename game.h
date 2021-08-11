@@ -25,7 +25,9 @@ typedef struct
     bool planta;
     bool esBanca;
     bool continuaJugando;
-    Carta cartasPorRonda[6];
+    int cantidadCartas;
+    bool mismoPalo;
+    char palo;
 } Jugador[6];
 
 
@@ -39,6 +41,6 @@ void pideCarta(Jugador jugador, Carta mazoJuego[40], int pos);
 void repartirGanancias(Jugador jugadores[6], int cantidadJugadores);
 void quienGanoMas(Jugador jugadores[6], int cantidadJugadores);
 void podriaSeguirJugando(Jugador jugador);
-void calcularBonus(bool mismoPalo, Jugador jugador, char palo);
+void calcularBonus(Jugador jugador, char palo);
 
 #endif // GAME_H_INCLUDED
