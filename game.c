@@ -321,7 +321,7 @@ void calcularBonus(Jugador jugador, char palo)
 {
     for (int i = 1; i < 6; i++)
     {
-        if (strcmp(jugador->palo, palo) == 0)
+        if (jugador->palo == palo)
         {
             jugador->mismoPalo = true;
             //strcpy(palo, jugador->palo);
